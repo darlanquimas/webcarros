@@ -3,7 +3,7 @@ import logoImg from "../../assets/logo.svg";
 import { FiUser, FiLogIn } from "react-icons/fi";
 
 const Header = () => {
-  const signed = true;
+  const signed = false;
   const loadingAuth = false;
 
   return (

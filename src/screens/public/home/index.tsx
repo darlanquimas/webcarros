@@ -21,7 +21,7 @@ const Home = () => {
         <section className="w-full bg-white rounded-lg">
           <img
             className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
-            src="https://cdn-site-seminovos.localiza.com/site/anuncio/60247/1.jpg"
+            src="https://image.webmotors.com.br/_fotos/anunciousados/gigante/2023/202309/20230928/toyota-corolla-cross-2.0-vvtie-flex-xre-direct-shift-wmimagem12034429483.jpg?s=fill&w=1920&h=1440&q=75"
             alt="Carro"
           />
 
