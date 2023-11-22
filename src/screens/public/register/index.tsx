@@ -5,6 +5,14 @@ import Input from "../../../components/input";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import {
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+} from "firebase/auth";
+import { auth } from "../../../services/firebaseConnection";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const schema = z
   .object({
@@ -21,6 +29,7 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 const Register = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -30,9 +39,23 @@ const Register = () => {
     mode: "onChange",
   });
 
-  function onSubmit(data: FormData) {
-    console.log(data);
+  async function onSubmit(data: FormData) {
+    createUserWithEmailAndPassword(auth, data.email, data.password)
+      .then(async (user) => {
+        await updateProfile(user.user, { displayName: data.name });
+        console.log("Cadastrado com sucesso");
+        navigate("/dashboard", { replace: true });
+      })
+      .catch((error) => {
+        console.log("erro ao cadastrar usuário", error);
+      });
   }
+  useEffect(() => {
+    async function handleLogOut() {
+      await signOut(auth);
+    }
+    handleLogOut();
+  }, []);
 
   return (
     <Container>
