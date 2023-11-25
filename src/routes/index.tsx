@@ -6,6 +6,7 @@ import Dashboard from "../screens/private/dashboard";
 import CreateNew from "../screens/private/createNew";
 import Login from "../screens/public/login";
 import Register from "../screens/public/register";
+import { PrivateRoutes } from "./PrivateRoutes";
 
 export const router = createBrowserRouter([
   {
@@ -13,8 +14,22 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <Home /> },
       { path: "/detail/:id", element: <Detail /> },
-      { path: "/dashboard", element: <Dashboard /> },
-      { path: "/add-new", element: <CreateNew /> },
+      {
+        path: "/dashboard",
+        element: (
+          <PrivateRoutes>
+            <Dashboard />
+          </PrivateRoutes>
+        ),
+      },
+      {
+        path: "/add-new",
+        element: (
+          <PrivateRoutes>
+            <CreateNew />{" "}
+          </PrivateRoutes>
+        ),
+      },
     ],
   },
   { path: "/login", element: <Login /> },
