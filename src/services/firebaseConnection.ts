@@ -5,12 +5,12 @@ import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAHXAj4V3z-amaDomYqE3WwhxeJ2fiMr-s",
-  authDomain: "frotaapp-5a606.firebaseapp.com",
-  projectId: "frotaapp-5a606",
-  storageBucket: "frotaapp-5a606.appspot.com",
-  messagingSenderId: "897780434318",
-  appId: "1:897780434318:web:e241a4e6aca8abdc6850df",
+  apiKey: process.env.REACT_APP_APIKEY,
+  authDomain: process.env.REACT_APP_AUTHDOMAIN,
+  projectId: process.env.REACT_APP_PROJECTID,
+  storageBucket: process.env.REACT_APP_STORAGEBUCKET,
+  messagingSenderId: process.env.REACT_APP_MESSAGINGSENDERID,
+  appId: process.env.REACT_APP_APPID,
 };
 
 const app = initializeApp(firebaseConfig);
