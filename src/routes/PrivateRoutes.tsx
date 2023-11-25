@@ -1,6 +1,7 @@
 import { ReactNode, useContext } from "react";
 import { AuthContext } from "../contexts/AuthContext";
 import { Navigate } from "react-router-dom";
+import PanelHeader from "../components/panelHeader";
 
 interface PrivateProps {
   children: ReactNode;
@@ -18,5 +19,10 @@ export function PrivateRoutes({ children }: PrivateProps) {
     return <Navigate to="/login" />;
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <PanelHeader />
+      {children}
+    </>
+  );
 }

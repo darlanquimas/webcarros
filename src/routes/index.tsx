@@ -3,10 +3,11 @@ import Layout from "../components/layout";
 import Home from "../screens/public/home";
 import Detail from "../screens/private/detail";
 import Dashboard from "../screens/private/dashboard";
-import CreateNew from "../screens/private/createNew";
+
 import Login from "../screens/public/login";
 import Register from "../screens/public/register";
 import { PrivateRoutes } from "./PrivateRoutes";
+import CreateNew from "../screens/private/dashboard/createNew";
 
 export const router = createBrowserRouter([
   {
