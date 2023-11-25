@@ -6,8 +6,12 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-type AuthContextData = { signed: boolean; loadingAuth: boolean };
-
+type AuthContextData = {
+  signed: boolean;
+  loadingAuth: boolean;
+  handleUserInfo: ({ name, email, uid }: UserProps) => void;
+  user: UserProps | null;
+};
 interface UserProps {
   uid: string;
   name: string | null;
@@ -40,11 +44,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
   }, []);
 
+  function handleUserInfo({ name, email, uid }: UserProps) {
+    setUser({ name, email, uid });
+  }
+
   return (
     <AuthContext.Provider
       value={{
         signed: !!user,
         loadingAuth,
+        handleUserInfo,
+        user,
       }}
     >
       {children}
