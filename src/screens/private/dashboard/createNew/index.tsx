@@ -1,13 +1,19 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { ChangeEvent, useContext } from "react";
+import React, { ChangeEvent, useContext, useState } from "react";
 import { useForm } from "react-hook-form";
-import { FiUpload } from "react-icons/fi";
+import { FiTrash, FiUpload } from "react-icons/fi";
 import { z } from "zod";
 import Input from "../../../../components/input";
 import { AuthContext } from "../../../../contexts/AuthContext";
 import { v4 as uuidv4 } from "uuid";
-import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { storage } from "../../../../services/firebaseConnection";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytes,
+} from "firebase/storage";
+import { addDoc, collection } from "firebase/firestore";
+import { storage, db } from "../../../../services/firebaseConnection";
 
 const schema = z.object({
   name: z.string().min(3, "O campo nome é obrigatório"),
@@ -27,8 +33,18 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+interface ImageItemProps {
+  uid: string;
+  name: string;
+  previewUrl: string;
+  url: string;
+}
 const CreateNew = () => {
   const { user } = useContext(AuthContext);
+
+  const [productImages, setProductImages] = useState<ImageItemProps[]>([]);
+  const [model, setModel] = useState<any>(null);
+
   const {
     register,
     handleSubmit,
@@ -40,6 +56,39 @@ const CreateNew = () => {
   });
 
   function onSubmit(data: FormData) {
+    if ((productImages.length = 0)) {
+      alert("Envie ao menos uma imagem");
+      return;
+    }
+
+    const productListImages = productImages.map((product) => {
+      return {
+        uid: product.uid,
+        name: product.name,
+        url: product.url,
+      };
+    });
+
+    addDoc(collection(db, "products"), {
+      name: data.name,
+      model: data.model,
+      whatsapp: data.whatsapp,
+      city: data.city,
+      year: data.year,
+      km: data.km,
+      price: data.price,
+      description: data.description,
+      created_at: new Date(),
+      owner: user?.name,
+      uid: user?.uid,
+      images: productListImages,
+    })
+      .then(() => {
+        reset();
+        setProductImages([]);
+        console.log("cadastrado com sucesso");
+      })
+      .catch((error) => console.log(error));
     console.log(data);
   }
 
@@ -67,9 +116,32 @@ const CreateNew = () => {
 
     await uploadBytes(uploadRef, image).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((downloadUrl) => {
-        console.log(downloadUrl);
+        const imageItem = {
+          name: uidImage,
+          uid: currentUid,
+          previewUrl: URL.createObjectURL(image),
+          url: downloadUrl,
+        };
+
+        setProductImages((images) => [...images, imageItem]);
       });
     });
+  }
+
+  async function handleDeleteImage(item: ImageItemProps) {
+    console.log(item);
+    const imagePath = `images/${item.uid}/${item.name}`;
+
+    const imageRef = ref(storage, imagePath);
+
+    try {
+      await deleteObject(imageRef);
+      setProductImages(
+        productImages.filter((product) => product.url !== item.url)
+      );
+    } catch (err) {
+      console.log(err);
+    }
   }
 
   return (
@@ -88,12 +160,30 @@ const CreateNew = () => {
             />
           </div>
         </button>
+        {productImages.map((item) => (
+          <div
+            key={item.name}
+            className="w-full h-32 flex items-center justify-center relative"
+          >
+            <button
+              className="absolute rounded-lg border p-2 drop-shadow-md bg-gray-800 opacity-50"
+              onClick={() => handleDeleteImage(item)}
+            >
+              <FiTrash size={28} color="#fff" />
+            </button>
+            <img
+              src={item.previewUrl}
+              alt={item.name}
+              className="rounded-lg w-full h-32 object-cover"
+            />
+          </div>
+        ))}
       </div>
 
       <div className="w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row items-center gap-2 mt-2">
         <form className="w-full" onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-3">
-            <p className="mb-2 font-medium">Nome do carro</p>
+            <p className="mb-1 font-medium">Nome do carro</p>
             <Input
               type="text"
               name="name"
@@ -103,19 +193,21 @@ const CreateNew = () => {
             />
           </div>
           <div className="mb-3">
-            <p className="mb-2 font-medium">Modelo do carro</p>
+            <p className="mb-1  font-medium">Modelo do carro</p>
             <Input
               type="text"
               name="model"
               error={errors.model?.message}
               register={register}
               placeholder="Ex: Onix 1.0 flex plus manual"
+              onChange={(event) => setModel(event.target?.value.toUpperCase())}
+              value={model}
             />
           </div>
 
           <div className="flex w-full mb-3 flex-row items-center gap-4">
             <div className="w-full">
-              <p className="mb-2 font-medium">Ano</p>
+              <p className="mb-1  font-medium">Ano</p>
               <Input
                 type="text"
                 name="year"
@@ -126,7 +218,7 @@ const CreateNew = () => {
             </div>
 
             <div className="w-full">
-              <p className="mb-2 font-medium">KMs Rodados</p>
+              <p className="mb-1  font-medium">KMs Rodados</p>
               <Input
                 type="text"
                 name="km"
@@ -138,7 +230,7 @@ const CreateNew = () => {
           </div>
           <div className="flex w-full mb-3 flex-row items-center gap-4">
             <div className="w-full">
-              <p className="mb-2 font-medium">Telefone:</p>
+              <p className="mb-1 font-medium">Telefone:</p>
               <Input
                 type="text"
                 name="wahtsapp"
@@ -149,7 +241,7 @@ const CreateNew = () => {
             </div>
 
             <div className="w-full">
-              <p className="mb-2 font-medium">Cidade</p>
+              <p className="mb-1  font-medium">Cidade</p>
               <Input
                 type="text"
                 name="city"
@@ -160,7 +252,7 @@ const CreateNew = () => {
             </div>
           </div>
           <div className="mb-3">
-            <p className="mb-2 font-medium">Preço R$</p>
+            <p className="mb-1  font-medium">Preço R$</p>
             <Input
               type="text"
               name="price"
@@ -170,7 +262,7 @@ const CreateNew = () => {
             />
           </div>
           <div className="mb-3">
-            <p className="mb-2 font-medium">Descrição</p>
+            <p className="mb-1  font-medium">Descrição</p>
             <textarea
               className="border-2 w-full rounded-md h24 px-2"
               {...register("description")}

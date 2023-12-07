@@ -7,6 +7,8 @@ interface InputProps {
   register: UseFormRegister<any>;
   error?: string;
   rules?: RegisterOptions;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  value?: any;
 }
 
 const Input = ({
@@ -16,6 +18,8 @@ const Input = ({
   register,
   rules,
   error,
+  value,
+  onChange,
 }: InputProps) => {
   return (
     <div>
@@ -25,6 +29,8 @@ const Input = ({
         type={type}
         {...register(name, rules)}
         id={name}
+        onChange={onChange}
+        value={value}
       />
       {error && <p className="my-1 text-red-500">{error}</p>}
     </div>
