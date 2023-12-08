@@ -24,10 +24,16 @@ const schema = z.object({
   city: z.string().min(3, "A cidade é obrigatória"),
   whatsapp: z
     .string()
-    .min(3, "O telefone é obrigatório")
-    .refine((value) => /^(\d{11,12})$/.test(value), {
-      message: "Numero de telefone inválido",
-    }),
+    .min(11, "O telefone é obrigatório")
+    .refine(
+      (value) => {
+        const numericValue = value.replace(/\D/g, ""); // Remove caracteres não numéricos
+        return /^(\d{11}|\d{12})$/.test(numericValue);
+      },
+      {
+        message: "Número de telefone inválido",
+      }
+    ),
   description: z.string().min(1, "A descrição é obrigatória"),
 });
 
@@ -44,6 +50,7 @@ const CreateNew = () => {
 
   const [productImages, setProductImages] = useState<ImageItemProps[]>([]);
   const [model, setModel] = useState<any>(null);
+  const [showImageError, setShowImageError] = useState<any>(false);
 
   const {
     register,
@@ -56,8 +63,9 @@ const CreateNew = () => {
   });
 
   function onSubmit(data: FormData) {
-    if ((productImages.length = 0)) {
-      alert("Envie ao menos uma imagem");
+    console.log(productImages.length);
+    if (productImages.length === 0) {
+      setShowImageError(true);
       return;
     }
 
@@ -86,6 +94,7 @@ const CreateNew = () => {
       .then(() => {
         reset();
         setProductImages([]);
+        setModel(null);
         console.log("cadastrado com sucesso");
       })
       .catch((error) => console.log(error));
@@ -108,6 +117,7 @@ const CreateNew = () => {
     if (!user?.uid) {
       return;
     }
+    setShowImageError(false);
 
     const currentUid = user?.uid;
     const uidImage = uuidv4();
@@ -160,6 +170,11 @@ const CreateNew = () => {
             />
           </div>
         </button>
+        {showImageError && (
+          <p className="mb-1 text-red-500">
+            É necessário enviar ao menos uma imagem
+          </p>
+        )}
         {productImages.map((item) => (
           <div
             key={item.name}
@@ -233,7 +248,7 @@ const CreateNew = () => {
               <p className="mb-1 font-medium">Telefone:</p>
               <Input
                 type="text"
-                name="wahtsapp"
+                name="whatsapp"
                 error={errors.whatsapp?.message}
                 register={register}
                 placeholder="Ex: 022 98899-9669"

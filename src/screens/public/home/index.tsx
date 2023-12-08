@@ -1,4 +1,55 @@
+import { collection, getDocs, orderBy, query } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import { db } from "../../../services/firebaseConnection";
+import { Link } from "react-router-dom";
+
+interface ProductProps {
+  id: string;
+  name: string;
+  model: string;
+  year: string;
+  city: string;
+  km: string;
+  price: string;
+  images: ImageItemProps[];
+  uid: string;
+}
+interface ImageItemProps {
+  uid: string;
+  name: string;
+  url: string;
+}
 const Home = () => {
+  const [products, setProducts] = useState<ProductProps[]>([]);
+
+  useEffect(() => {
+    async function loadProducts() {}
+    const productRef = collection(db, "products");
+    const queryRef = query(productRef, orderBy("created_at", "desc"));
+
+    getDocs(queryRef).then((snapshot) => {
+      let listProducts = [] as ProductProps[];
+
+      snapshot.forEach((doc) => {
+        listProducts.push({
+          id: doc.id,
+          name: doc.data().name,
+          price: doc.data().price,
+          city: doc.data().city,
+          km: doc.data().km,
+          year: doc.data().year,
+          model: doc.data().model,
+          images: doc.data().images,
+          uid: doc.data().uid,
+        });
+      });
+
+      setProducts(listProducts);
+    });
+
+    loadProducts();
+  }, []);
+
   return (
     <>
       <section className="bg-white p-4 rounded-lg w-full max-w-3xl mx-auto flex justify-center items-center gap-2">
@@ -18,29 +69,35 @@ const Home = () => {
       </h1>
 
       <main className=" grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <section className="w-full bg-white rounded-lg">
-          <img
-            className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
-            src="https://image.webmotors.com.br/_fotos/anunciousados/gigante/2023/202309/20230928/toyota-corolla-cross-2.0-vvtie-flex-xre-direct-shift-wmimagem12034429483.jpg?s=fill&w=1920&h=1440&q=75"
-            alt="Carro"
-          />
+        {products.map((product) => (
+          <Link key={product.id} to={`/detail/${product.id}`}>
+            <section className="w-full bg-white rounded-lg">
+              <img
+                className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
+                src={product.images[0].url}
+                alt="Carro"
+              />
 
-          <p className="font-bold mt-1 mb-2 px-2">Corola Cross 2023</p>
+              <p className="font-bold mt-1 mb-2 px-2">{`${product.name} ${product.year}`}</p>
 
-          <div className="flex flex-col px-2">
-            <span className="text-zinc-700 mb-6">Ano 2023/2023 | 23.00 km</span>
+              <div className="flex flex-col px-2">
+                <span className="text-zinc-700 mb-6">
+                  Ano {product.year} | {product.km} km
+                </span>
 
-            <strong className="text-black font-medium text-xl">
-              R$ 190.000,00
-            </strong>
-          </div>
+                <strong className="text-black font-medium text-xl">
+                  R$ {product.price}
+                </strong>
+              </div>
 
-          <div className="w-full h-px bg-slate-200 my-2"></div>
+              <div className="w-full h-px bg-slate-200 my-2"></div>
 
-          <div className=" px-2 pb-2">
-            <span className="text-zinc-700">Nova Friburgo - RJ</span>
-          </div>
-        </section>
+              <div className=" px-2 pb-2">
+                <span className="text-zinc-700">{product.city}</span>
+              </div>
+            </section>
+          </Link>
+        ))}
       </main>
     </>
   );
