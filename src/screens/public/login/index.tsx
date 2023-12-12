@@ -11,8 +11,11 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
 const schema = z.object({
-  email: z.string().email("Insira um email válido"),
-  password: z.string().min(1, "A senha é obrigatória"),
+  email: z
+    .string()
+    .email("Insira um email válido")
+    .nonempty("O campo email é obrigatório"),
+  password: z.string().nonempty("O campo senha é obrigatório"),
 });
 
 type FormData = z.infer<typeof schema>;

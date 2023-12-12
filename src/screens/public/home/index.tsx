@@ -21,6 +21,11 @@ interface ImageItemProps {
 }
 const Home = () => {
   const [products, setProducts] = useState<ProductProps[]>([]);
+  const [loadImages, setLoadImages] = useState<string[]>([]);
+
+  function handleIamgeLoad(id: string) {
+    setLoadImages((imageLeaded) => [...imageLeaded, id]);
+  }
 
   useEffect(() => {
     async function loadProducts() {}
@@ -72,10 +77,20 @@ const Home = () => {
         {products.map((product) => (
           <Link key={product.id} to={`/detail/${product.id}`}>
             <section className="w-full bg-white rounded-lg">
+              <div
+                className="w-full h-72 rounded-lg bg-slate-200"
+                style={{
+                  display: loadImages.includes(product.id) ? "none" : "block",
+                }}
+              ></div>
               <img
                 className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
                 src={product.images[0].url}
                 alt="Carro"
+                onLoad={() => handleIamgeLoad(product.id)}
+                style={{
+                  display: loadImages.includes(product.id) ? "block" : "none",
+                }}
               />
 
               <p className="font-bold mt-1 mb-2 px-2">{`${product.name} ${product.year}`}</p>
