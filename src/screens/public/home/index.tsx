@@ -1,7 +1,9 @@
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { db } from "../../../services/firebaseConnection";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../../../contexts/AuthContext";
+import PanelHeader from "../../../components/panelHeader";
 
 interface ProductProps {
   id: string;
@@ -22,6 +24,8 @@ interface ImageItemProps {
 const Home = () => {
   const [products, setProducts] = useState<ProductProps[]>([]);
   const [loadImages, setLoadImages] = useState<string[]>([]);
+
+  const { user } = useContext(AuthContext);
 
   function handleIamgeLoad(id: string) {
     setLoadImages((imageLeaded) => [...imageLeaded, id]);
@@ -57,6 +61,7 @@ const Home = () => {
 
   return (
     <>
+      {user?.uid && <PanelHeader />}
       <section className="bg-white p-4 rounded-lg w-full max-w-3xl mx-auto flex justify-center items-center gap-2">
         <input
           className="w-full border-2 rounded-lg h9 px-3 outline-none"
