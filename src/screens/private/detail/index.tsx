@@ -1,15 +1,22 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
+import React, { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { db } from "../../../services/firebaseConnection";
+import { FaWhatsapp } from "react-icons/fa";
 interface ProductProps {
   id: string;
   name: string;
   model: string;
   year: string;
   city: string;
+  description: string;
   km: string;
   price: string;
   images: ImageItemProps[];
   uid: string;
+  created_at: Date;
+  owner: string;
+  whatsapp: String;
 }
 interface ImageItemProps {
   uid: string;
@@ -18,55 +25,86 @@ interface ImageItemProps {
 }
 
 const Detail = () => {
-  const products: any = [{}, {}];
+  const [product, setProduct] = useState<ProductProps | null>(null);
   const [loadImages, setLoadImages] = useState<string[]>([]);
+  const { id } = useParams();
 
   function handleIamgeLoad(id: string) {
     setLoadImages((imageLeaded) => [...imageLeaded, id]);
   }
 
+  useEffect(() => {
+    async function loadProduct() {
+      if (!id) {
+        return;
+      }
+      const docRef = doc(db, "products", id);
+      getDoc(docRef).then((snapshot) => {
+        setProduct({
+          id: snapshot.id,
+          name: snapshot.data()?.name,
+          model: snapshot.data()?.model,
+          year: snapshot.data()?.year,
+          city: snapshot.data()?.city,
+          description: snapshot.data()?.description,
+          km: snapshot.data()?.km,
+          price: snapshot.data()?.price,
+          uid: snapshot.data()?.uid,
+          created_at: snapshot.data()?.created_at,
+          owner: snapshot.data()?.owner,
+          whatsapp: snapshot.data()?.whatsapp,
+          images: snapshot.data()?.images,
+        });
+      });
+    }
+    loadProduct();
+  }, [id]);
+
   return (
-    <main className=" grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-      {products.map((product: ProductProps) => (
-        <Link key={product.id} to={`/detail/${product.id}`}>
-          <section className="w-full bg-white rounded-lg">
-            <div
-              className="w-full h-72 rounded-lg bg-slate-200"
-              style={{
-                display: loadImages.includes(product.id) ? "none" : "block",
-              }}
-            ></div>
-            <img
-              className="w-full rounded-lg mb-2 max-h-72 hover:scale-105 transition-all"
-              src={product.images[0].url}
-              alt="Carro"
-              onLoad={() => handleIamgeLoad(product.id)}
-              style={{
-                display: loadImages.includes(product.id) ? "block" : "none",
-              }}
-            />
+    <>
+      <h1>slider</h1>
 
-            <p className="font-bold mt-1 mb-2 px-2">{`${product.name} ${product.year}`}</p>
-
-            <div className="flex flex-col px-2">
-              <span className="text-zinc-700 mb-6">
-                Ano {product.year} | {product.km} km
-              </span>
-
-              <strong className="text-black font-medium text-xl">
-                R$ {product.price}
-              </strong>
+      {product && (
+        <main className=" w-full bg-white rounded-lg p-6 my-4">
+          <div className="flex flex-col sm:flex-row mb4 items-center justify-between">
+            <h1 className="font-bold text-3xl text-black">{product?.name}</h1>
+            <h1 className="font-bold text-3xl text-black">
+              R${product?.price}
+            </h1>
+          </div>
+          <p>{product.model}</p>
+          <div className="flex w-full gap-6 my4">
+            <div className="flex flex-col gap-4">
+              <div>
+                <p>Cidade</p>
+                <strong>{product?.city}</strong>
+              </div>
+              <div>
+                <p>Ano</p>
+                <strong>{product?.year}</strong>
+              </div>
             </div>
 
-            <div className="w-full h-px bg-slate-200 my-2"></div>
-
-            <div className=" px-2 pb-2">
-              <span className="text-zinc-700">{product.city}</span>
+            <div className="flex flex-col gap-4">
+              <div>
+                <p>KM</p>
+                <strong>{product?.km}</strong>
+              </div>
             </div>
-          </section>
-        </Link>
-      ))}
-    </main>
+          </div>
+
+          <strong>Descrição</strong>
+          <p className="mb-4">{product?.description}</p>
+
+          <strong>Telefone / Whatsapp</strong>
+          <p>{product?.whatsapp}</p>
+
+          <a className="cursor-pointer bg-green-500 w-full text-white flex items-center justify-center gap-2 my-6 h-11 text-xl rounded-lg font-medium">
+            Conversar com o vendedor <FaWhatsapp size={26} color="#FFF" />
+          </a>
+        </main>
+      )}
+    </>
   );
 };
 
