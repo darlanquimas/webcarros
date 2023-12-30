@@ -1,9 +1,17 @@
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
 import { useEffect, useState, useContext } from "react";
 import { FiTrash2 } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { db } from "../../../services/firebaseConnection";
+import { db, storage } from "../../../services/firebaseConnection";
 import { AuthContext } from "../../../contexts/AuthContext";
+import { deleteObject, ref } from "firebase/storage";
 
 interface ProductProps {
   id: string;
@@ -29,6 +37,20 @@ const Dashboard = () => {
 
   function handleIamgeLoad(id: string) {
     setLoadImages((imageLeaded) => [...imageLeaded, id]);
+  }
+
+  async function handleDeleteProduct(product: ProductProps) {
+    const docRef = doc(db, "products", product.id);
+    await deleteDoc(docRef);
+
+    product.images.map(async (image) => {
+      const imagePath = `images/${image.uid}/${image.name}`;
+      const imageRef = ref(storage, imagePath);
+
+      await deleteObject(imageRef);
+    });
+
+    setProducts(products.filter((product) => product.id !== product.id));
   }
 
   useEffect(() => {
@@ -66,42 +88,42 @@ const Dashboard = () => {
     <>
       <main className="grid grid-cols-1 gap-6 md:grid-cols-2 ls:grid-cols-3">
         {products.map((product) => (
-          <Link key={product.id} to={`/detail/${product.id}`}>
-            <section className="w-full bg-white rounded-lg relative">
-              <button
-                className="absolute bg-white w-14 h-14 rounded-full flex items-center justify-center right-2 top-2 drop-shadow hover:opacity-80"
-                onClick={() => {}}
-              >
-                <FiTrash2 size={26} color="#000" />
-              </button>
-              <img
-                className="w-full rounded-lg mb-2 max-h-70"
-                src={product.images[0].url}
-                alt="Carro"
-                onLoad={() => handleIamgeLoad(product.id)}
-                style={{
-                  display: loadImages.includes(product.id) ? "block" : "none",
-                }}
-              />
-              <p className="font-bold mt-1 mb-2 px-2">{`${product.name} ${product.year}`}</p>
+          //  <Link key={product.id} to={`/detail/${product.id}`}>
+          <section className="w-full bg-white rounded-lg relative">
+            <button
+              className="absolute bg-white w-14 h-14 rounded-full flex items-center justify-center right-2 top-2 drop-shadow hover:opacity-80"
+              onClick={() => handleDeleteProduct(product)}
+            >
+              <FiTrash2 size={26} color="#000" />
+            </button>
+            <img
+              className="w-full rounded-lg mb-2 max-h-70"
+              src={product.images[0].url}
+              alt="Carro"
+              onLoad={() => handleIamgeLoad(product.id)}
+              style={{
+                display: loadImages.includes(product.id) ? "block" : "none",
+              }}
+            />
+            <p className="font-bold mt-1 mb-2 px-2">{`${product.name} ${product.year}`}</p>
 
-              <div className="flex flex-col px-2">
-                <span className="text-zinc-700 mb-6">
-                  Ano {product.year} | {product.km} km
-                </span>
+            <div className="flex flex-col px-2">
+              <span className="text-zinc-700 mb-6">
+                Ano {product.year} | {product.km} km
+              </span>
 
-                <strong className="text-black font-medium text-xl">
-                  R$ {product.price}
-                </strong>
-              </div>
+              <strong className="text-black font-medium text-xl">
+                R$ {product.price}
+              </strong>
+            </div>
 
-              <div className="w-full h-px bg-slate-200 my-2"></div>
+            <div className="w-full h-px bg-slate-200 my-2"></div>
 
-              <div className=" px-2 pb-2">
-                <span className="text-zinc-700">{product.city}</span>
-              </div>
-            </section>
-          </Link>
+            <div className=" px-2 pb-2">
+              <span className="text-zinc-700">{product.city}</span>
+            </div>
+          </section>
+          //      </Link>
         ))}
       </main>
     </>
